@@ -240,6 +240,20 @@ func (t *Term) Run() (int, error) {
 					c = append(c, prefix+f)
 				}
 			}
+		case "print":
+			if spc := strings.LastIndex(line, " "); spc > 0 {
+				prefix := line[:spc] + " "
+				scope := api.EvalScope{GoroutineID: -1, Frame: 0} // Topmost stack of current goroutine.
+				locals, err := t.client.ListLocalVariables(scope, t.loadConfig())
+				if err != nil {
+					return
+				}
+				for _, l := range locals {
+					if strings.HasPrefix(l.Name, line[spc+1:]) {
+						c = append(c, prefix+l.Name)
+					}
+				}
+			}
 		case "nullcmd", "nocmd":
 			commands := cmds.FuzzySearch(strings.ToLower(line))
 			c = append(c, commands...)
